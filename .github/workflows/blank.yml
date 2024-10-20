@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  notifyRepos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ''
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.DISPATCH_PAT }}
+          script: |
+            console.log("context", context)
