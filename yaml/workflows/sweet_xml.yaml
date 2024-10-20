@@ -1,0 +1,55 @@
+jobs:
+  build:
+    name: "Build and test (Elixir ${{ matrix.versions.elixir }})"
+    runs-on: "${{ matrix.versions.os }}"
+    steps:
+      - uses: "actions/checkout@v4"
+      - name: Set up Elixir
+        uses: "erlef/setup-beam@v1"
+        with:
+          elixir-version: "${{ matrix.versions.elixir }}"
+          otp-version: "${{ matrix.versions.otp }}"
+      - env:
+          cache-name: cache-elixir-deps
+        id: cache-deps
+        name: Cache Elixir dependencies
+        uses: "actions/cache@v3"
+        with:
+          key: "${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}"
+          path: deps
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+      - env:
+          cache-name: cache-elixir-build
+        id: cache-build
+        name: Cache Elixir build
+        uses: "actions/cache@v3"
+        with:
+          key: "${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}"
+          path: "_build"
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+            ${{ runner.os }}-mix-
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Run tests
+        run: mix test
+    strategy:
+      matrix:
+        versions:
+          - elixir: "1.13.4-otp-23"
+            os: ubuntu-20.04
+            otp: '23.3.4.9'
+          - elixir: "1.15.7-otp-25"
+            os: ubuntu-22.04
+            otp: '25.3.2.9'
+name: Build and Test
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+permissions:
+  contents: read
